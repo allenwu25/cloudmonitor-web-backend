@@ -1,0 +1,21 @@
+GET - Details for individual user
+GET - All projects for a user
+POST - Create new user (signup)
+POST - Login for existing user
+PUT - Update user details (including email subscription settings)
+
+
+GET - Individual project details
+GET - All Urls for a project
+POST - Create new project
+PUT - Update project details
+PUT - Update project number of urls
+
+
+GET - Details for individual Url
+GET - All response times for individual Url (filtered by date)
+POST - Create new Url
+PUT - Update Url details (Type, Request-body, Request-headers)
+PUT - Update Url success/failure, status (Done by separate service)
+DELETE - Delete Url from project
+
