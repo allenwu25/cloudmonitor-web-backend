@@ -7,6 +7,7 @@ import jwt
 from flask_cors import CORS, cross_origin
 
 from application.methods.usermethods import UserMethods
+from application.models.user import User
 from application.methods.projectmethods import ProjectMethods
 
 from application.utils.extensions import db
@@ -26,11 +27,11 @@ def validate_token(request):
     print(token)
     if not token:
         return None
-    
-    data = jwt.decode(token, app.config['SECRET_KEY'], algorithms="HS256")
-    print(data)
-    return data
-
+    try:  
+        data = jwt.decode(token, app.config['SECRET_KEY'], algorithms="HS256")
+        return data
+    except:
+        return None
 
 
 
@@ -102,13 +103,53 @@ def user_projects(userid):
         except CustomException as e:
             return e.message, e.status_code
 
-    if (request.method == 'POST'):
+    elif (request.method == 'POST'):
         try:
             projectname = request.json.get('projectname')
             ProjectMethods().create_project(userid, projectname)
             return "Successfully added", 201
         except CustomException as e:
             return e.message, e.status_code
+
+    else:
+        return "Invalid Request Method", 405
+
+
+# PUT - Update project details
+@app.route('/projects/<int:projectid>', methods=['GET', 'PUT', 'DELETE'])
+@cross_origin()
+def individual_project(projectid):
+    data = validate_token(request)
+    if data == None: return "Token is invalid or not present", 403
+
+    if (request.method == 'GET'):
+        try:
+            existing_project = ProjectMethods().get_project_by_id(projectid)
+            if (existing_project == None):
+                raise CustomException("Project does not exist", 400)
+            return serialize_one(existing_project)            
+        except CustomException as e:
+            return e.message, e.status_code
+            
+    elif (request.method == 'PUT'):
+        try:
+            update_parameters = request.json
+            ProjectMethods().update_project(projectid, update_parameters)
+            return "Successfully updated", 201
+        except CustomException as e:
+            return e.message, e.status_code
+
+    elif (request.method == 'DELETE'):
+        try:
+            ProjectMethods().delete_project(projectid)
+            return "Successfully deleted", 201
+        except CustomException as e:
+            return e.message, e.status_code
+
+    else:
+        return "Invalid Request method", 405
+
+
 
 
 if __name__ == "__main__":

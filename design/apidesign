@@ -2,7 +2,7 @@ GET - Details for individual user
 // DONE GET - All projects for a user
 // DONE POST - Create new user (signup)
 // DONE POST - Login for existing user
-PUT - Update user details (including email subscription settings)
+PUT - Update user details // later on (including email subscription settings)
 
 
 GET - Individual project details

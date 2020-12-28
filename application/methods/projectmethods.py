@@ -33,3 +33,29 @@ class ProjectMethods:
 
         db.session.add(new_project)
         db.session.commit()
+
+    # Updates a project depending on parameters passed in
+    def update_project(self, projectid, update_parameters):
+        existing_project = self.get_project_by_id(projectid)
+        if (existing_project == None):
+            raise CustomException("Project does not exist", 400)
+        
+        if (update_parameters.get('projectname')):
+            existing_project.projectname = update_parameters['projectname']
+        
+        if (update_parameters.get('numberurls')):
+            existing_project.numberurls += update_parameters['numberurls']
+        
+        if (update_parameters.get('uptime')):
+            existing_project.uptime = update_parameters['uptime']
+
+        db.session.commit()
+
+    def delete_project(self, projectid):
+        try:
+            Project.query.filter_by(projectid=projectid).delete()
+            db.session.commit()
+        except:
+            raise CustomException("Delete failed", 400)
+
+
