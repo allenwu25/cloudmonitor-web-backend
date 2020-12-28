@@ -9,6 +9,8 @@ from flask_cors import CORS, cross_origin
 from application.methods.usermethods import UserMethods
 from application.models.user import User
 from application.methods.projectmethods import ProjectMethods
+from application.methods.targetmethods import TargetMethods
+
 
 from application.utils.extensions import db
 from application.utils.exceptions import CustomException
@@ -115,7 +117,6 @@ def user_projects(userid):
         return "Invalid Request Method", 405
 
 
-# PUT - Update project details
 @app.route('/projects/<int:projectid>', methods=['GET', 'PUT', 'DELETE'])
 @cross_origin()
 def individual_project(projectid):
@@ -134,14 +135,14 @@ def individual_project(projectid):
     elif (request.method == 'PUT'):
         try:
             update_parameters = request.json
-            ProjectMethods().update_project(projectid, update_parameters)
+            ProjectMethods().update_project(projectid, update_parameters, data['user'])
             return "Successfully updated", 201
         except CustomException as e:
             return e.message, e.status_code
 
     elif (request.method == 'DELETE'):
         try:
-            ProjectMethods().delete_project(projectid)
+            ProjectMethods().delete_project(projectid, data['user'])
             return "Successfully deleted", 201
         except CustomException as e:
             return e.message, e.status_code
@@ -150,6 +151,48 @@ def individual_project(projectid):
         return "Invalid Request method", 405
 
 
+
+@app.route('/projects/<int:projectid>/targets', methods=['GET', 'POST'])
+@cross_origin()
+def project_targets(projectid):
+    data = validate_token(request)
+    if data == None: return "Token is invalid or not present", 403
+
+    if (request.method == 'POST'):
+        try:
+            target_info = request.json
+            TargetMethods().create_target(projectid, data['user'], target_info)
+            return "Successfully created target", 201
+        except CustomException as e:
+            return e.message, e.status_code
+    else:
+        return "Invalid Request method", 405
+
+
+@app.route('/projects/<int:projectid>/targets/<int:targetid>', methods=['GET', 'PUT', 'DELETE'])
+@cross_origin()
+def individual_target(projectid, targetid):
+    data = validate_token(request)
+    if data == None: return "Token is invalid or not present", 403
+
+
+    if (request.method == 'PUT'):
+        try:
+            target_update_info = request.json
+            TargetMethods().update_target(projectid, data['user'], targetid, target_update_info)
+            return "Successfully updated target", 201
+        except CustomException as e:
+            return e.message, e.status_code
+
+    elif (request.method == 'DELETE'):
+        try:
+            TargetMethods().delete_target(projectid, data['user'], targetid)
+            return "Successfully deleted target", 201
+        except CustomException as e:
+            return e.message, e.status_code
+
+    else:
+        return "Invalid Request method", 405
 
 
 if __name__ == "__main__":
