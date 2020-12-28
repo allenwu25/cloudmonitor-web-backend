@@ -10,11 +10,12 @@ from application.methods.usermethods import UserMethods
 from application.models.user import User
 from application.methods.projectmethods import ProjectMethods
 from application.methods.targetmethods import TargetMethods
+from application.methods.responsemethods import ResponseMethods
 
 
 from application.utils.extensions import db
 from application.utils.exceptions import CustomException
-from application.utils.serializers import serialize_one, serialize_many
+from application.utils.serializers import serialize_one, serialize_many, serialize_dictionary
 
 # Initialize Flask Application
 app = Flask(__name__)
@@ -22,7 +23,6 @@ cors = CORS(app)
 app.config.from_object('application.environment.config')
 app.config.from_pyfile('config.py', silent=True)
 db.init_app(app)
-
 
 def validate_token(request):
     token = request.args.get('token')
@@ -34,8 +34,6 @@ def validate_token(request):
         return data
     except:
         return None
-
-
 
 @app.route('/')
 @cross_origin()
@@ -116,6 +114,18 @@ def user_projects(userid):
     else:
         return "Invalid Request Method", 405
 
+# retrieve user information with email (+token)
+@app.route('/users/getuser/<email>', methods=['GET'])
+@cross_origin()
+def user_info(email):
+    data = validate_token(request)
+    if data == None: return "Token is invalid or not present", 403
+
+    try:
+        user_info = UserMethods().get_user_details(email)
+        return serialize_dictionary(user_info)
+    except CustomException as e:
+        return e.message, e.status_code
 
 @app.route('/projects/<int:projectid>', methods=['GET', 'PUT', 'DELETE'])
 @cross_origin()
@@ -194,6 +204,44 @@ def individual_target(projectid, targetid):
     else:
         return "Invalid Request method", 405
 
+# get URLs by projectid
+@app.route('/projects/urls/<int:projectid>', methods=['GET'])
+@cross_origin()
+def project_urls(projectid):
+    data = validate_token(request)
+    if data == None: return "Token is invalid or not present", 403
+
+    try:
+        urls = ProjectMethods().get_urls(projectid)
+        return serialize_dictionary(urls)
+    except CustomException as e:
+        return e.message, e.status_code
+
+# get individual URL information by urlid
+@app.route('/targets/info/<int:urlid>', methods=['GET'])
+@cross_origin()
+def url_info(urlid):
+    data = validate_token(request)
+    if data == None: return "Token is invalid or not present", 403
+
+    try:
+        info = TargetMethods().get_target_by_id(urlid)
+        return serialize_one(info)
+    except CustomException as e:
+        return e.message, e.status_code
+
+# get all the response information by urlid
+@app.route('/targets/responses/<int:urlid>', methods=['GET'])
+@cross_origin()
+def url_response_info(urlid):
+    data = validate_token(request)
+    if data == None: return "Token is invalid or not present", 403
+
+    try:
+        responses = ResponseMethods().get_responses_filtered_by_date(urlid)
+        return serialize_dictionary(responses)
+    except CustomException as e:
+        return e.message, e.status_code
 
 if __name__ == "__main__":
     app.run(debug=True)

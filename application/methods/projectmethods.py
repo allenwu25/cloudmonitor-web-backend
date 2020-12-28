@@ -1,4 +1,5 @@
 from application.models.project import Project
+from application.models.target import Target
 from application.utils.exceptions import CustomException
 from application.utils.extensions import db
 
@@ -63,4 +64,22 @@ class ProjectMethods:
         except:
             raise CustomException("Delete failed", 400)
 
+    def get_urls(self, projectid):
+        project_targets = Target.query.filter(Project.projectid == projectid)
+        urls = self.filter_links(project_targets) 
+        return urls
 
+    def filter_links(self, targets):
+        url_arr = []
+        try:
+            dict_targets = [target.to_dict() for target in targets]
+            for target in dict_targets:
+                url_arr.append(target['link'])
+        except:
+            pass
+
+        urls = {
+            'urls': url_arr
+        }
+        
+        return urls

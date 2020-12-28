@@ -1,4 +1,4 @@
-GET - Details for individual user
+// FUNCTIONAL GET - Details for individual user
 // DONE GET - All projects for a user
 // DONE POST - Create new user (signup)
 // DONE POST - Login for existing user
@@ -6,14 +6,14 @@ PUT - Update user details // later on (including email subscription settings)
 
 
 // DONE GET - Individual project details
-GET - All Urls for a project
+// FUNCTIONAL GET - All Urls for a project
 // DONE POST - Create new project
 // DONE PUT - Update project details
 // DONE PUT - Update project number of urls
 
 
-GET - Details for individual Url
-GET - All response times for individual Url (filtered by date)
+// FUNCTIONAL GET - Details for individual Url
+// FUNCTIONAL GET - All response times for individual Url (filtered by date)
 // DONE POST - Create new Url
 // DONE PUT - Update Url details (Type, Request-body, Request-headers)
 // DONE PUT - Update Url success/failure, status (Done by separate service)

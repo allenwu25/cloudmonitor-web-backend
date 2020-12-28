@@ -9,10 +9,22 @@ import jwt, hashlib, datetime
 class UserMethods:
 
     # Gets details for a user given email
+    # returns a dictionary instead of User() object
     def get_user_details(self, email):
         user_info = User.query.filter(User.email == email).first()
-        return user_info
+        no_pass_info = self.remove_password(user_info)
+        return no_pass_info
 
+    # remove the password from a User() object
+    # returns a dictionary conversion of User object without password
+    def remove_password(self, result):
+        val = None
+        try:
+            val = result.to_dict()
+            val.pop('password')
+        except:
+            val = {'userid': None, 'datejoined': None, 'email': None}
+        return val
 
     # Logs a user in given email and password
     def login(self, email, password):
