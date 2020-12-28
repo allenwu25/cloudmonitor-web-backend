@@ -35,11 +35,15 @@ class ProjectMethods:
         db.session.commit()
 
     # Updates a project depending on parameters passed in
-    def update_project(self, projectid, update_parameters):
+    def update_project(self, projectid, update_parameters, userid):
         existing_project = self.get_project_by_id(projectid)
         if (existing_project == None):
             raise CustomException("Project does not exist", 400)
+
+        if (existing_project.userid != userid):
+            raise CustomException("User Id doesn't match", 400)
         
+
         if (update_parameters.get('projectname')):
             existing_project.projectname = update_parameters['projectname']
         
@@ -51,7 +55,8 @@ class ProjectMethods:
 
         db.session.commit()
 
-    def delete_project(self, projectid):
+
+    def delete_project(self, projectid, userid):
         try:
             Project.query.filter_by(projectid=projectid).delete()
             db.session.commit()
