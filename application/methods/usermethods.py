@@ -30,7 +30,7 @@ class UserMethods:
             raise CustomException("Incorrect password", 401)
 
         # Otherwise we know that user is valid, so create a jwt token
-        token = jwt.encode({'user' : email, 'exp' : datetime.datetime.utcnow() + datetime.timedelta(days=1)}, config.SECRET_KEY)
+        token = jwt.encode({'user' : existing_user.userid, 'exp' : datetime.datetime.utcnow() + datetime.timedelta(days=1)}, config.SECRET_KEY, algorithm="HS256")
         return token
 
 
@@ -56,7 +56,7 @@ class UserMethods:
         db.session.commit()
 
         # Create new jwt token and return
-        token = jwt.encode({'user' : email, 'exp' : datetime.datetime.now() + datetime.timedelta(days=1)}, config.SECRET_KEY)
+        token = jwt.encode({'user' : newuser.userid, 'exp' : datetime.datetime.now() + datetime.timedelta(days=1)}, config.SECRET_KEY, algorithm="HS256")
         return token
 
 

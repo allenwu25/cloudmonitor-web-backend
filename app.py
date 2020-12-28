@@ -3,12 +3,15 @@ from flask_sqlalchemy import SQLAlchemy
 import time
 import os
 import json
+import jwt
 from flask_cors import CORS, cross_origin
 
-from application.utils.extensions import db
 from application.methods.usermethods import UserMethods
+from application.methods.projectmethods import ProjectMethods
 
+from application.utils.extensions import db
 from application.utils.exceptions import CustomException
+from application.utils.serializers import serialize_one, serialize_many
 
 # Initialize Flask Application
 app = Flask(__name__)
@@ -18,22 +21,16 @@ app.config.from_pyfile('config.py', silent=True)
 db.init_app(app)
 
 
-def token_required(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        token = request.args.get('token')
+def validate_token(request):
+    token = request.args.get('token')
+    print(token)
+    if not token:
+        return None
+    
+    data = jwt.decode(token, app.config['SECRET_KEY'], algorithms="HS256")
+    print(data)
+    return data
 
-        if not token:
-            return jsonify({'message' : 'Token is missing!'}), 403
-
-        try: 
-            data = jwt.decode(token, app.config['SECRET_KEY'])
-        except:
-            return jsonify({'message' : 'Token is invalid!'}), 403
-
-        return f(*args, **kwargs)
-
-    return decorated
 
 
 
@@ -91,10 +88,27 @@ def signup():
 @app.route('/users/<int:userid>/projects', methods=['GET', 'POST'])
 @cross_origin()
 def user_projects(userid):
+    data = validate_token(request)
+    if data == None: return "Token is invalid or not present", 403
+
+    if (data['user'] != userid):
+        return "Invalid user", 403
+    
+
     if (request.method == 'GET'):
-        pass
+        try:
+            all_projects = UserMethods().get_all_projects(userid)
+            return serialize_many(all_projects)
+        except CustomException as e:
+            return e.message, e.status_code
+
     if (request.method == 'POST'):
-        pass
+        try:
+            projectname = request.json.get('projectname')
+            ProjectMethods().create_project(userid, projectname)
+            return "Successfully added", 201
+        except CustomException as e:
+            return e.message, e.status_code
 
 
 if __name__ == "__main__":

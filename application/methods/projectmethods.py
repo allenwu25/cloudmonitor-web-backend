@@ -1,5 +1,7 @@
 from application.models.project import Project
-from application.utils.extensions import CustomException
+from application.utils.exceptions import CustomException
+from application.utils.extensions import db
+
 
 class ProjectMethods:
     def get_project_by_id(self, projectid):
@@ -7,7 +9,7 @@ class ProjectMethods:
         return existing_project
 
     def get_project_by_name(self, userid, projectname):
-        existing_project = Project.query
+        existing_project = Project.query \
         .filter(Project.userid == userid) \
         .filter(Project.projectname == projectname).first()
         return existing_project
@@ -15,8 +17,10 @@ class ProjectMethods:
 
     def create_project(self, userid, projectname):
 
-        existing_project = self.get_project_by_name(userid, projectname)
+        if (projectname == None):
+            raise CustomException("No projectname parameter in body", 400)
 
+        existing_project = self.get_project_by_name(userid, projectname)
         if (existing_project != None):
             raise CustomException("Project name already exists for user", 400)
         
@@ -29,4 +33,3 @@ class ProjectMethods:
 
         db.session.add(new_project)
         db.session.commit()
-        
