@@ -14,7 +14,7 @@ class TargetMethods:
     def create_target(self, projectid, userid, target_info):
 
         # Project based on projectid should exist
-        existing_project = ProjectMethods().get_project_by_id(projectid)
+        existing_project = ProjectMethods().get_project_by_id(projectid, userid)
         if (existing_project == None):
             raise CustomException("Project does not exist", 400)
         
@@ -58,7 +58,7 @@ class TargetMethods:
     # Updates fields for a target
     def update_target(self, projectid, userid, targetid, target_update_info):
         # Project based on projectid should exist
-        existing_project = ProjectMethods().get_project_by_id(projectid)
+        existing_project = ProjectMethods().get_project_by_id(projectid, userid)
         if (existing_project == None):
             raise CustomException("Project does not exist", 400)
 
@@ -93,7 +93,7 @@ class TargetMethods:
 
     def delete_target(self, projectid, userid, targetid):
         # Project based on projectid should exist
-        existing_project = ProjectMethods().get_project_by_id(projectid)
+        existing_project = ProjectMethods().get_project_by_id(projectid, userid)
         if (existing_project == None):
             raise CustomException("Project does not exist", 400)
 

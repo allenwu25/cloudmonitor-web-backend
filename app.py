@@ -61,8 +61,8 @@ def login():
         return "Invalid body parameters", 400
     
     try:
-        jwt_token = UserMethods().login(email, password)
-        return json.dumps({'token': jwt_token}), 201
+        token_and_user = UserMethods().login(email, password)
+        return json.dumps(token_and_user), 201
 
     except CustomException as e:
         return e.message, e.status_code
@@ -79,11 +79,21 @@ def signup():
         return "Invalid body parameters", 400
     
     try:
-        jwt_token = UserMethods().signup(email, password)
-        return json.dumps({'token': jwt_token}), 201
+        token_and_user = UserMethods().signup(email, password)
+        return json.dumps(token_and_user), 201
     
     except CustomException as e:
         return e.message, e.status_code
+
+
+@app.route('/users/get_user_by_token', methods=['GET'])
+@cross_origin()
+def get_user_by_token():
+    data = validate_token(request)
+    if ((data == None) or (data.get('user') == None)): 
+        return "Token is invalid or not present", 403
+    return json.dumps({'userid': data.get('user')})
+
 
 
 @app.route('/users/<int:userid>/projects', methods=['GET', 'POST'])
@@ -135,9 +145,9 @@ def individual_project(projectid):
 
     if (request.method == 'GET'):
         try:
-            existing_project = ProjectMethods().get_project_by_id(projectid)
+            existing_project = ProjectMethods().get_project_by_id(projectid, data['user'])
             if (existing_project == None):
-                raise CustomException("Project does not exist", 400)
+                raise CustomException("Project does not exist under userid", 400)
             return serialize_one(existing_project)            
         except CustomException as e:
             return e.message, e.status_code
@@ -213,7 +223,7 @@ def project_urls(projectid):
 
     try:
         urls = ProjectMethods().get_urls(projectid)
-        return serialize_dictionary(urls)
+        return serialize_many(urls)
     except CustomException as e:
         return e.message, e.status_code
 

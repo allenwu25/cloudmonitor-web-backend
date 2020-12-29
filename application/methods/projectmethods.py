@@ -5,8 +5,10 @@ from application.utils.extensions import db
 
 
 class ProjectMethods:
-    def get_project_by_id(self, projectid):
+    def get_project_by_id(self, projectid, userid):
         existing_project = Project.query.filter(Project.projectid == projectid).first()
+        if (existing_project.userid != userid):
+            return None
         return existing_project
 
     def get_project_by_name(self, userid, projectname):
@@ -37,7 +39,7 @@ class ProjectMethods:
 
     # Updates a project depending on parameters passed in
     def update_project(self, projectid, update_parameters, userid):
-        existing_project = self.get_project_by_id(projectid)
+        existing_project = self.get_project_by_id(projectid, userid)
         if (existing_project == None):
             raise CustomException("Project does not exist", 400)
 
@@ -65,9 +67,8 @@ class ProjectMethods:
             raise CustomException("Delete failed", 400)
 
     def get_urls(self, projectid):
-        project_targets = Target.query.filter(Project.projectid == projectid)
-        urls = self.filter_links(project_targets) 
-        return urls
+        project_targets = Target.query.filter(Project.projectid == projectid) 
+        return project_targets
 
     def filter_links(self, targets):
         url_arr = []

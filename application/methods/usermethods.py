@@ -45,7 +45,7 @@ class UserMethods:
 
         # Otherwise we know that user is valid, so create a jwt token
         token = jwt.encode({'user' : existing_user.userid, 'exp' : datetime.datetime.utcnow() + datetime.timedelta(days=1)}, config.SECRET_KEY, algorithm="HS256")
-        return token
+        return {'token': token, 'userid': existing_user.userid, 'email': existing_user.email}
 
 
     # Creates new account for user given email, password
@@ -71,7 +71,7 @@ class UserMethods:
 
         # Create new jwt token and return
         token = jwt.encode({'user' : newuser.userid, 'exp' : datetime.datetime.now() + datetime.timedelta(days=1)}, config.SECRET_KEY, algorithm="HS256")
-        return token
+        return {'token': token, 'userid': newuser.userid, 'email': newuser.email}
 
 
 
