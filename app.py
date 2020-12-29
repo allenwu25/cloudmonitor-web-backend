@@ -122,8 +122,8 @@ def user_info(email):
     if data == None: return "Token is invalid or not present", 403
 
     try:
-        user_info = UserMethods().get_user_details(email)
-        return serialize_dictionary(user_info)
+        user_info = UserMethods().get_user_details(email, remove_password=True)
+        return serialize_one(user_info)
     except CustomException as e:
         return e.message, e.status_code
 

@@ -10,10 +10,12 @@ class UserMethods:
 
     # Gets details for a user given email
     # returns a dictionary instead of User() object
-    def get_user_details(self, email):
-        user_info = User.query.filter(User.email == email).first()
-        no_pass_info = self.remove_password_from_details(user_info)
-        return no_pass_info
+    def get_user_details(self, email, remove_password):
+        if (remove_password):
+            user_info = User.query.with_entities(User.userid, User.email, User.datejoined)
+        else:
+            user_info = User.query.filter(User.email == email).first()
+        return user_info
 
     # remove the password from a User() object
     # returns a dictionary conversion of User object without password
@@ -30,7 +32,7 @@ class UserMethods:
     def login(self, email, password):
 
         # Ensure user is registered
-        existing_user = self.get_user_details(email)
+        existing_user = self.get_user_details(email, remove_password=False)
         if (existing_user == None):
             raise CustomException("User not registered", 401)
 
@@ -50,7 +52,7 @@ class UserMethods:
     def signup(self, email, password):
 
         # Ensure user is a new user
-        existing_user = self.get_user_details(email)
+        existing_user = self.get_user_details(email, remove_password=False)
         if (existing_user != None):
             raise CustomException("User is already registered", 422)
 
