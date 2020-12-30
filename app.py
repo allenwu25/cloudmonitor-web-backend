@@ -185,6 +185,12 @@ def project_targets(projectid):
             return serialize_one(newtarget), 201
         except CustomException as e:
             return e.message, e.status_code
+    elif (request.method == 'GET'):
+        try:
+            urls = ProjectMethods().get_urls(projectid)
+            return serialize_many(urls)
+        except CustomException as e:
+            return e.message, e.status_code
     else:
         return "Invalid Request method", 405
 
@@ -210,7 +216,12 @@ def individual_target(projectid, targetid):
             return "Successfully deleted target", 201
         except CustomException as e:
             return e.message, e.status_code
-
+    elif (request.method == 'GET'):
+        try:
+            info = TargetMethods().get_target_by_id(urlid)
+            return serialize_one(info)
+        except CustomException as e:
+            return e.message, e.status_code
     else:
         return "Invalid Request method", 405
 
