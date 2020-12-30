@@ -67,7 +67,7 @@ class ProjectMethods:
             raise CustomException("Delete failed", 400)
 
     def get_urls(self, projectid):
-        project_targets = Target.query.filter(Project.projectid == projectid) 
+        project_targets = Target.query.filter(Target.projectid == projectid) 
         return project_targets
 
     def filter_links(self, targets):
