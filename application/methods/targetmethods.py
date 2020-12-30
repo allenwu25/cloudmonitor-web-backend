@@ -46,8 +46,8 @@ class TargetMethods:
 
             # Optional parameters
             if (requestheaders): new_target.requestheaders = requestheaders
-            if (requestbody): new_target.requestheaders = requestbody
-            if (requesttype): new_target.requestheaders = requesttype
+            if (requestbody): new_target.requestbody = requestbody
+            if (requesttype): new_target.requesttype = requesttype
 
 
             db.session.add(new_target)
