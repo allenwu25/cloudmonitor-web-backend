@@ -181,8 +181,8 @@ def project_targets(projectid):
     if (request.method == 'POST'):
         try:
             target_info = request.json
-            TargetMethods().create_target(projectid, data['user'], target_info)
-            return "Successfully created target", 201
+            newtarget = TargetMethods().create_target(projectid, data['user'], target_info)
+            return serialize_one(newtarget), 201
         except CustomException as e:
             return e.message, e.status_code
     else:

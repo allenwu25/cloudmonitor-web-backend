@@ -39,7 +39,9 @@ class TargetMethods:
                 testtype = testtype,
                 numsuccess = 0,
                 numfailure = 0,
-                requesttype = 'GET'
+                requestheaders = requestheaders,
+                requestbody = requestbody,
+                requesttype = requesttype
             )
 
             # Optional parameters
@@ -50,6 +52,8 @@ class TargetMethods:
 
             db.session.add(new_target)
             db.session.commit()
+
+            return new_target
 
         except:
             raise CustomException("Invalid json body parameters", 400)
