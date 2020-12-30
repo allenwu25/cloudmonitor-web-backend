@@ -53,6 +53,11 @@ class TargetMethods:
             db.session.add(new_target)
             db.session.commit()
 
+            params = {
+                "numberurls": 1
+            }
+            ProjectMethods().update_project(projectid, params, userid)
+
             return new_target
 
         except:
@@ -108,6 +113,11 @@ class TargetMethods:
         try:
             Target.query.filter_by(urlid=targetid).delete()
             db.session.commit()
+
+            params = {
+                "numberurls": -1
+            }
+            ProjectMethods().update_project(projectid, params, userid)
         except:
             raise CustomException("Error when deleting", 400)
     

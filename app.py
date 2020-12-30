@@ -218,38 +218,12 @@ def individual_target(projectid, targetid):
             return e.message, e.status_code
     elif (request.method == 'GET'):
         try:
-            info = TargetMethods().get_target_by_id(urlid)
+            info = TargetMethods().get_target_by_id(targetid)
             return serialize_one(info)
         except CustomException as e:
             return e.message, e.status_code
     else:
         return "Invalid Request method", 405
-
-# get URLs by projectid
-@app.route('/projects/urls/<int:projectid>', methods=['GET'])
-@cross_origin()
-def project_urls(projectid):
-    data = validate_token(request)
-    if data == None: return "Token is invalid or not present", 403
-
-    try:
-        urls = ProjectMethods().get_urls(projectid)
-        return serialize_many(urls)
-    except CustomException as e:
-        return e.message, e.status_code
-
-# get individual URL information by urlid
-@app.route('/targets/info/<int:urlid>', methods=['GET'])
-@cross_origin()
-def url_info(urlid):
-    data = validate_token(request)
-    if data == None: return "Token is invalid or not present", 403
-
-    try:
-        info = TargetMethods().get_target_by_id(urlid)
-        return serialize_one(info)
-    except CustomException as e:
-        return e.message, e.status_code
 
 # get all the response information by urlid
 @app.route('/targets/responses/<int:urlid>', methods=['GET'])
