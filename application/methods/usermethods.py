@@ -9,16 +9,30 @@ import jwt, hashlib, datetime
 class UserMethods:
 
     # Gets details for a user given email
-    def get_user_details(self, email):
-        user_info = User.query.filter(User.email == email).first()
+    # returns a dictionary instead of User() object
+    def get_user_details(self, email, remove_password):
+        if (remove_password):
+            user_info = User.query.with_entities(User.userid, User.email, User.datejoined)
+        else:
+            user_info = User.query.filter(User.email == email).first()
         return user_info
 
+    # remove the password from a User() object
+    # returns a dictionary conversion of User object without password
+    def remove_password_from_details(self, result):
+        val = None
+        try:
+            val = result.to_dict()
+            val.pop('password')
+        except:
+            val = {'userid': None, 'datejoined': None, 'email': None}
+        return val
 
     # Logs a user in given email and password
     def login(self, email, password):
 
         # Ensure user is registered
-        existing_user = self.get_user_details(email)
+        existing_user = self.get_user_details(email, remove_password=False)
         if (existing_user == None):
             raise CustomException("User not registered", 401)
 
@@ -31,14 +45,14 @@ class UserMethods:
 
         # Otherwise we know that user is valid, so create a jwt token
         token = jwt.encode({'user' : existing_user.userid, 'exp' : datetime.datetime.utcnow() + datetime.timedelta(days=1)}, config.SECRET_KEY, algorithm="HS256")
-        return token
+        return {'token': token, 'userid': existing_user.userid, 'email': existing_user.email}
 
 
     # Creates new account for user given email, password
     def signup(self, email, password):
 
         # Ensure user is a new user
-        existing_user = self.get_user_details(email)
+        existing_user = self.get_user_details(email, remove_password=False)
         if (existing_user != None):
             raise CustomException("User is already registered", 422)
 
@@ -57,7 +71,7 @@ class UserMethods:
 
         # Create new jwt token and return
         token = jwt.encode({'user' : newuser.userid, 'exp' : datetime.datetime.now() + datetime.timedelta(days=1)}, config.SECRET_KEY, algorithm="HS256")
-        return token
+        return {'token': token, 'userid': newuser.userid, 'email': newuser.email}
 
 
 

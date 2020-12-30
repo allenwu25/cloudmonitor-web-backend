@@ -10,11 +10,12 @@ from application.methods.usermethods import UserMethods
 from application.models.user import User
 from application.methods.projectmethods import ProjectMethods
 from application.methods.targetmethods import TargetMethods
+from application.methods.responsemethods import ResponseMethods
 
 
 from application.utils.extensions import db
 from application.utils.exceptions import CustomException
-from application.utils.serializers import serialize_one, serialize_many
+from application.utils.serializers import serialize_one, serialize_many, serialize_dictionary
 
 # Initialize Flask Application
 app = Flask(__name__)
@@ -22,7 +23,6 @@ cors = CORS(app)
 app.config.from_object('application.environment.config')
 app.config.from_pyfile('config.py', silent=True)
 db.init_app(app)
-
 
 def validate_token(request):
     token = request.args.get('token')
@@ -34,8 +34,6 @@ def validate_token(request):
         return data
     except:
         return None
-
-
 
 @app.route('/')
 @cross_origin()
@@ -63,8 +61,8 @@ def login():
         return "Invalid body parameters", 400
     
     try:
-        jwt_token = UserMethods().login(email, password)
-        return json.dumps({'token': jwt_token}), 201
+        token_and_user = UserMethods().login(email, password)
+        return json.dumps(token_and_user), 201
 
     except CustomException as e:
         return e.message, e.status_code
@@ -81,11 +79,21 @@ def signup():
         return "Invalid body parameters", 400
     
     try:
-        jwt_token = UserMethods().signup(email, password)
-        return json.dumps({'token': jwt_token}), 201
+        token_and_user = UserMethods().signup(email, password)
+        return json.dumps(token_and_user), 201
     
     except CustomException as e:
         return e.message, e.status_code
+
+
+@app.route('/users/get_user_by_token', methods=['GET'])
+@cross_origin()
+def get_user_by_token():
+    data = validate_token(request)
+    if ((data == None) or (data.get('user') == None)): 
+        return "Token is invalid or not present", 403
+    return json.dumps({'userid': data.get('user')})
+
 
 
 @app.route('/users/<int:userid>/projects', methods=['GET', 'POST'])
@@ -116,6 +124,18 @@ def user_projects(userid):
     else:
         return "Invalid Request Method", 405
 
+# retrieve user information with email (+token)
+@app.route('/users/getuser/<email>', methods=['GET'])
+@cross_origin()
+def user_info(email):
+    data = validate_token(request)
+    if data == None: return "Token is invalid or not present", 403
+
+    try:
+        user_info = UserMethods().get_user_details(email, remove_password=True)
+        return serialize_one(user_info)
+    except CustomException as e:
+        return e.message, e.status_code
 
 @app.route('/projects/<int:projectid>', methods=['GET', 'PUT', 'DELETE'])
 @cross_origin()
@@ -125,9 +145,9 @@ def individual_project(projectid):
 
     if (request.method == 'GET'):
         try:
-            existing_project = ProjectMethods().get_project_by_id(projectid)
+            existing_project = ProjectMethods().get_project_by_id(projectid, data['user'])
             if (existing_project == None):
-                raise CustomException("Project does not exist", 400)
+                raise CustomException("Project does not exist under userid", 400)
             return serialize_one(existing_project)            
         except CustomException as e:
             return e.message, e.status_code
@@ -161,8 +181,14 @@ def project_targets(projectid):
     if (request.method == 'POST'):
         try:
             target_info = request.json
-            TargetMethods().create_target(projectid, data['user'], target_info)
-            return "Successfully created target", 201
+            newtarget = TargetMethods().create_target(projectid, data['user'], target_info)
+            return serialize_one(newtarget), 201
+        except CustomException as e:
+            return e.message, e.status_code
+    elif (request.method == 'GET'):
+        try:
+            urls = ProjectMethods().get_urls(projectid)
+            return serialize_many(urls)
         except CustomException as e:
             return e.message, e.status_code
     else:
@@ -190,10 +216,53 @@ def individual_target(projectid, targetid):
             return "Successfully deleted target", 201
         except CustomException as e:
             return e.message, e.status_code
-
+    elif (request.method == 'GET'):
+        try:
+            info = TargetMethods().get_target_by_id(urlid)
+            return serialize_one(info)
+        except CustomException as e:
+            return e.message, e.status_code
     else:
         return "Invalid Request method", 405
 
+# get URLs by projectid
+@app.route('/projects/urls/<int:projectid>', methods=['GET'])
+@cross_origin()
+def project_urls(projectid):
+    data = validate_token(request)
+    if data == None: return "Token is invalid or not present", 403
+
+    try:
+        urls = ProjectMethods().get_urls(projectid)
+        return serialize_many(urls)
+    except CustomException as e:
+        return e.message, e.status_code
+
+# get individual URL information by urlid
+@app.route('/targets/info/<int:urlid>', methods=['GET'])
+@cross_origin()
+def url_info(urlid):
+    data = validate_token(request)
+    if data == None: return "Token is invalid or not present", 403
+
+    try:
+        info = TargetMethods().get_target_by_id(urlid)
+        return serialize_one(info)
+    except CustomException as e:
+        return e.message, e.status_code
+
+# get all the response information by urlid
+@app.route('/targets/responses/<int:urlid>', methods=['GET'])
+@cross_origin()
+def url_response_info(urlid):
+    data = validate_token(request)
+    if data == None: return "Token is invalid or not present", 403
+
+    try:
+        responses = ResponseMethods().get_responses_filtered_by_date(urlid)
+        return serialize_dictionary(responses)
+    except CustomException as e:
+        return e.message, e.status_code
 
 if __name__ == "__main__":
     app.run(debug=True)
