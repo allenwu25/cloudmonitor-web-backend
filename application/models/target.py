@@ -15,4 +15,4 @@ class Target(db.Model, SerializerMixin):
     requestbody = db.Column('RequestBody', db.String(3000), nullable=True)
     requesttype = db.Column('RequestType', db.String(100), nullable=True)
 
-
+    # responsetimes = db.relationship('Responsetime', cascade='all,delete', backref='target')

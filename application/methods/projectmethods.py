@@ -61,9 +61,11 @@ class ProjectMethods:
 
     def delete_project(self, projectid, userid):
         try:
-            Project.query.filter_by(projectid=projectid).delete()
+            project = Project.query.filter_by(projectid=projectid).first()
+            db.session.delete(project)
             db.session.commit()
-        except:
+        except Exception as e:
+            print(e)
             raise CustomException("Delete failed", 400)
 
     def get_urls(self, projectid):
