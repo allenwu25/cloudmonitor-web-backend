@@ -2,6 +2,7 @@ from application.models.target import Target
 from application.methods.projectmethods import ProjectMethods
 from application.utils.exceptions import CustomException
 from application.utils.extensions import db
+from application.methods.responsemethods import ResponseMethods
 
 
 class TargetMethods:
@@ -39,19 +40,21 @@ class TargetMethods:
                 testtype = testtype,
                 numsuccess = 0,
                 numfailure = 0,
-                requestheaders = requestheaders,
-                requestbody = requestbody,
                 requesttype = requesttype
             )
 
             # Optional parameters
             if (requestheaders): new_target.requestheaders = requestheaders
-            if (requestbody): new_target.requestheaders = requestbody
-            if (requesttype): new_target.requestheaders = requesttype
+            if (requestbody): new_target.requestbody = requestbody
 
 
             db.session.add(new_target)
             db.session.commit()
+
+            params = {
+                "numberurls": 1
+            }
+            ProjectMethods().update_project(projectid, params, userid)
 
             return new_target
 
@@ -87,11 +90,11 @@ class TargetMethods:
             raise CustomException("Target based on target id does not exist", 400)
         
         # Update fields of existing target record
-        if (link): existing_target.link = link
-        if (testtype): existing_target.testtype = testtype
-        if (requestheaders): existing_target.requestheaders = requestheaders
-        if (requestbody): existing_target.requestbody = requestbody
-        if (requesttype): existing_target.requesttype = requesttype
+        existing_target.link = link
+        existing_target.testtype = testtype
+        existing_target.requestheaders = requestheaders
+        existing_target.requestbody = requestbody
+        existing_target.requesttype = requesttype
 
         db.session.commit()
 
@@ -106,8 +109,17 @@ class TargetMethods:
             raise CustomException("Userid does not match project's userid", 403)
         
         try:
-            Target.query.filter_by(urlid=targetid).delete()
+            ResponseMethods().delete_responses(targetid)
+
+            target = Target.query.filter_by(urlid=targetid).first()
+            db.session.delete(target)
             db.session.commit()
-        except:
+
+            params = {
+                "numberurls": -1
+            }
+            ProjectMethods().update_project(projectid, params, userid)
+        except Exception as e:
+            print(e)
             raise CustomException("Error when deleting", 400)
     
