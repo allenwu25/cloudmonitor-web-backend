@@ -2,6 +2,7 @@ from application.models.project import Project
 from application.models.target import Target
 from application.utils.exceptions import CustomException
 from application.utils.extensions import db
+from application.methods.responsemethods import ResponseMethods
 
 
 class ProjectMethods:
@@ -61,6 +62,21 @@ class ProjectMethods:
 
     def delete_project(self, projectid, userid):
         try:
+            # get the project
+            existing_project = ProjectMethods().get_project_by_id(projectid, userid)
+            if (existing_project == None):
+                raise CustomException("Project does not exist", 400)
+
+            if (existing_project.userid != userid):
+                raise CustomException("Userid does not match project's userid", 403)
+
+            # for each URL in the project, delete its responses and the target itself
+            urls = Target.query.filter_by(projectid=projectid).all()
+            for url in urls:
+                ResponseMethods().delete_responses(url.urlid)
+                Target.query.filter_by(urlid=url.urlid).delete()
+
+            # delete the project
             project = Project.query.filter_by(projectid=projectid).first()
             db.session.delete(project)
             db.session.commit()

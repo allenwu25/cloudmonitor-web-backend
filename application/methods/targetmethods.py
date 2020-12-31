@@ -2,6 +2,7 @@ from application.models.target import Target
 from application.methods.projectmethods import ProjectMethods
 from application.utils.exceptions import CustomException
 from application.utils.extensions import db
+from application.methods.responsemethods import ResponseMethods
 
 
 class TargetMethods:
@@ -111,6 +112,8 @@ class TargetMethods:
             raise CustomException("Userid does not match project's userid", 403)
         
         try:
+            ResponseMethods().delete_responses(targetid)
+
             target = Target.query.filter_by(urlid=targetid).first()
             db.session.delete(target)
             db.session.commit()
@@ -119,6 +122,7 @@ class TargetMethods:
                 "numberurls": -1
             }
             ProjectMethods().update_project(projectid, params, userid)
-        except:
+        except Exception as e:
+            print(e)
             raise CustomException("Error when deleting", 400)
     
