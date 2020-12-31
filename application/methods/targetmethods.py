@@ -40,15 +40,12 @@ class TargetMethods:
                 testtype = testtype,
                 numsuccess = 0,
                 numfailure = 0,
-                requestheaders = requestheaders,
-                requestbody = requestbody,
                 requesttype = requesttype
             )
 
             # Optional parameters
             if (requestheaders): new_target.requestheaders = requestheaders
             if (requestbody): new_target.requestbody = requestbody
-            if (requesttype): new_target.requesttype = requesttype
 
 
             db.session.add(new_target)

@@ -4,6 +4,7 @@ import time
 import os
 import json
 import jwt
+from waitress import serve
 from flask_cors import CORS, cross_origin
 
 from application.methods.usermethods import UserMethods
@@ -239,4 +240,5 @@ def url_response_info(urlid):
         return e.message, e.status_code
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    serve(app, host='0.0.0.0', port=5000)
+    
